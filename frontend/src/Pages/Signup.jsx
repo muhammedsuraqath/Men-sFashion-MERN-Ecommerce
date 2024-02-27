@@ -1,0 +1,224 @@
+import {
+    Box,
+    Button,
+    Flex,
+    FormControl,
+    FormLabel,
+    Heading,
+    Input,
+    VStack,
+    Text,
+    useToast
+  } from "@chakra-ui/react";
+  import {  useContext, useState } from "react";
+  
+  import { Link,useNavigate } from "react-router-dom";
+  import axios from "axios";
+  import { FcGoogle } from "react-icons/fc";
+  import { BsFacebook } from "react-icons/bs";
+  import { AuthContext } from "../context/AppContext";
+  
+  export default function Signup() {
+    
+    const [name, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const { googleSignIn, facebookSignIn } = useContext(AuthContext);
+    const navigateUser=useNavigate()
+
+    const toast =useToast()
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      const payload={
+        name,
+        email,
+        password
+        
+      }
+      
+     
+      axios.post("http://localhost:3400/signup",payload).then((res)=>{
+        console.log(res.data);
+        toast({
+          title:res.data.msg
+        })
+        if(res.status===200){
+          navigateUser("/login")
+        }
+        else{
+          toast({
+            title:"Please Signup with correct credentials"
+          })
+        }
+        
+      })
+      // alert("SIGN UP SUCCESSFULL");
+    };
+    const handlegoogleSignUp = async (e) => {
+      e.preventDefault();
+      try {
+     const user= await googleSignIn();
+     console.log("from signup",user);
+     if(user.user.email!==undefined){
+      const payload={
+        name:user.user.displayName,
+        email:user.user.email,
+        password:`${user.user.displayName.split(" ")[0]}@byme`
+      }
+      axios.post("http://localhost:3400/signup",payload).then((res)=>{
+        console.log(res.data)
+          if(res.status===200){
+           const  login_payload={
+            email:user.user.email,
+        password:`${user.user.displayName.split(" ")[0]}@byme`
+           }
+            axios.post("http://localhost:3400/login",login_payload).then((res)=>{
+              
+            })
+          }
+        })
+    }
+    navigateUser("/");
+     toast({
+        position : 'top',
+        colorScheme : 'green', 
+        status : "success",
+        title:"Login sucessfully "
+    })
+        
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    const handleFacebookSignUp = async (e) => {
+      e.preventDefault();
+      try {
+        await facebookSignIn();
+        navigateUser("/profile");
+      } catch (err) {}
+    };
+  
+    return (
+      <Box
+      bgImage="url(https://i.ibb.co/k0JL8gg/vecteezy-clothing-store-customers-are-choosing-clothes-and-a-staff-is-4145772.jpg)"
+      bgPos="center"
+      bgRepeat="no-repeat"
+      bgSize="100%"
+      Size="100%"
+      >
+        <Box
+          align="center"
+          color="white"
+          fontFamily="Montserrat - 700"
+          fontSize="36px"
+          fontWeight="700"
+          fontStyle="normal"
+          h={20}
+          display="block"
+        >
+          <img
+            style={{ height: "95px" }}
+            src="https://s3.us-east-1.amazonaws.com/cdn.designcrowd.com/blog/108-fashion-logos-to-show-off-your-style/retro-men-fashion-by-shen02-brandcrowd.png"
+            alt="bymeicon"
+          />
+          <Text fontSize="xxl" color={"blackAlpha.600"}>
+                    MEN'S FASION
+                  </Text>
+        </Box>
+        <br />
+        <br />
+        <br />
+        <Flex align="center"  justify="center" m={"auto"} h="100vh" w={["96%","65%","45%"]}>
+          <Box bg="white" p={39} rounded="md" textAlign={"center"}>
+            <Heading variant={"solid"}>CREATE YOUR ACCOUNT</Heading>
+            <Text variant={"ghost"}>Continue with</Text>
+            <br />
+            <Box direction={{ base: 'column', md: 'column',lg:'row' }}>
+              <Flex gap={4} justifyContent="center">
+                <Box>
+                  <Button
+                    variant="outline"
+                    colorScheme={"#50b6ff"}
+                    onClick={handlegoogleSignUp}
+                  >
+                    <FcGoogle />
+                  </Button>
+                 
+                </Box>
+                <Button onClick={handleFacebookSignUp} variant="outline" colorScheme={"#50b6ff"}>
+                  <BsFacebook />
+                </Button>
+                <Box>
+                </Box>
+              </Flex>
+              <br />
+              <Text variant={"ghost"}>Or</Text>
+            </Box>
+  
+            <form onSubmit={handleSubmit}>
+              <VStack spacing={4} align="flex-start">
+                <FormControl>
+                  <FormLabel htmlFor="name" variant={"smooth"}>
+                    Username
+                  </FormLabel>
+                  <Input
+                    isInvalid
+                    errorBorderColor="black"
+                    id="name"
+                    name="name"
+                    type="name"
+                    placeholder="Enter a name"
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel htmlFor="email" variant={"smooth"}>
+                    Email
+                  </FormLabel>
+                  <Input
+                    isInvalid
+                    errorBorderColor="black"
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel htmlFor="password" variant={"smooth"}>
+                    Password
+                  </FormLabel>
+                  <Input
+                    isInvalid
+                    errorBorderColor="black"
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Password"
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </FormControl>
+                <Button type="submit" bg="black" color="white" width="full">
+                  CREATE ACCOUNT
+                </Button>
+                <Box alignSelf="center">
+                  <Text fontSize="lg">
+                    Already a member? <Link to="/login">Sign in</Link>
+                  </Text>
+                </Box>
+                
+                <br />
+              </VStack>
+            </form>
+          </Box>
+        </Flex>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+      </Box>
+      
+    );
+  }
+  
